@@ -1,0 +1,16 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AsyncStream11-12", "AsyncStream11-12\AsyncStream11-12.csproj", "{AD8D7483-8A1A-4424-A084-239C4AC3E684}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{AD8D7483-8A1A-4424-A084-239C4AC3E684}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{AD8D7483-8A1A-4424-A084-239C4AC3E684}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{AD8D7483-8A1A-4424-A084-239C4AC3E684}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{AD8D7483-8A1A-4424-A084-239C4AC3E684}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+EndGlobal
