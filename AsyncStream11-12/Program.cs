@@ -5,12 +5,15 @@ using System.Threading.Tasks;
 
 class MyClass
 {
-    public static async Task Main(string[] args) // Використовуємо async для асинхрогого таску
+    public static async Task Main(string[] args)
     {
         // Путь к исходному файлу
         string inputFilePath = "C:\\Users\\mehan\\RiderProjects\\AsyncStream11-12\\AsyncStream11-12\\text.txt";
         // Путь к файлу, в который будут записаны данные
         string outputFilePath = "C:\\Users\\mehan\\RiderProjects\\AsyncStream11-12\\AsyncStream11-12\\Copied.txt";
+
+        // Количество потоков для чтения
+        int threadCount = 4; 
 
         // Проверка существования файла
         if (!File.Exists(inputFilePath))
@@ -21,30 +24,52 @@ class MyClass
 
         try
         {
-            // Чтение данных из файла асинхронно
-            byte[] buffer = new byte[100];
-            using (FileStream fileStream = new FileStream(inputFilePath, FileMode.Open, FileAccess.Read, FileShare.Read, 1024, FileOptions.Asynchronous))
+            // Получаем размер файла
+            long fileSize = new FileInfo(inputFilePath).Length;
+            long chunkSize = fileSize / threadCount;
+
+            Task[] tasks = new Task[threadCount];
+
+            using (FileStream outputFileStream = new FileStream(outputFilePath, FileMode.Create, FileAccess.Write))
             {
-                int readBytes = await fileStream.ReadAsync(buffer, 0, buffer.Length);
-                Console.WriteLine("Прочитано {0} байт", readBytes);
-
-                // Преобразуем считанные байты в строку
-                string content = Encoding.UTF8.GetString(buffer, 0, readBytes);
-                Console.WriteLine(content);
-
-                // Записываем считанные данные в новый файл
-                using (FileStream outputFileStream = new FileStream(outputFilePath, FileMode.Create, FileAccess.Write))
+                for (int i = 0; i < threadCount; i++)
                 {
-                    byte[] outputBuffer = Encoding.UTF8.GetBytes(content);
-                    await outputFileStream.WriteAsync(outputBuffer, 0, outputBuffer.Length);
+                    long offset = i * chunkSize;
+                    long bytesToRead = (i == threadCount - 1) ? fileSize - offset : chunkSize;
+
+                    tasks[i] = CopyChunkAsync(inputFilePath, outputFileStream, offset, bytesToRead);
                 }
 
-                Console.WriteLine("Данные скопированы в файл.");
+                await Task.WhenAll(tasks);
             }
+
+            Console.WriteLine("Данные скопированы в файл.");
         }
         catch (Exception ex)
         {
             Console.WriteLine("Произошла ошибка: " + ex.Message);
+        }
+    }
+
+    public static async Task CopyChunkAsync(string inputFilePath, FileStream outputFileStream, long offset, long bytesToRead)
+    {
+        byte[] buffer = new byte[1024]; // Буфер 
+
+        using (FileStream inputFileStream = new FileStream(inputFilePath, FileMode.Open, FileAccess.Read, FileShare.Read, 1024, FileOptions.Asynchronous))
+        {
+            inputFileStream.Seek(offset, SeekOrigin.Begin); // Перемещение указателя на нужную позицию
+
+            long totalBytesRead = 0;
+            while (totalBytesRead < bytesToRead)
+            {
+                int bytesRead = await inputFileStream.ReadAsync(buffer, 0, Math.Min(buffer.Length, (int)(bytesToRead - totalBytesRead)));
+                if (bytesRead == 0)
+                {
+                    break;
+                } 
+                await outputFileStream.WriteAsync(buffer, 0, bytesRead);
+                totalBytesRead += bytesRead;
+            }
         }
     }
 }
